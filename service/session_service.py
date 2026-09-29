@@ -128,7 +128,7 @@ def update_session(vehicle_id: int):
                 detail="Время выезда раньше времени въезда"
             )
 
-        hours = ceil(seconds / 3600)
+        hours = ceil(seconds / (3600*100))
 
         if hours < 1:
             hours = 1

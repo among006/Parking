@@ -174,7 +174,7 @@ def delete_spot(id: int):
 
 
 @app.post(
-    "/asessions/arrivl",
+    "/sessions/arrivl",
     response_model=ParkingSessionResponse,
     status_code=201
 )
