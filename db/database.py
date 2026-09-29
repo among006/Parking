@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-from plistlib import load
 
 import psycopg
 from dotenv import load_dotenv

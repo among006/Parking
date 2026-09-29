@@ -1,12 +1,10 @@
 
 from fastapi import FastAPI, HTTPException
-from sqlalchemy import select
+from psycopg.errors import UniqueViolation
 
-from db.check_db import result
-from db.database import get_connection
 from dto import ParkingSpot
 from dto.VehicleType import VehicleCreate, VehicleResponse
-from repository import parking_repository
+from repository import parking_repository, vehicle_repository
 from repository.vehicle_repository import find_all, find_one, create
 
 app = FastAPI(title="Parking Among")
@@ -16,7 +14,7 @@ app = FastAPI(title="Parking Among")
 def health():
     return {"status": "ok"}
 
-@app.get("/vehicle/{id}", response_model=VehicleResponse)
+@app.get("/vehicles/{id}", response_model=VehicleResponse)
 def get_vehicle(id: int):
     vehicle = find_one(id)
     print(vehicle)
@@ -24,8 +22,16 @@ def get_vehicle(id: int):
         raise HTTPException(status_code=404,
                             detail="Нету такой машины",)
 
-    return find_one(id)
-
+    return vehicle
+@app.put("/vehicles/{id}")
+def update_vehicle(id: int, vehicle: VehicleCreate):
+    try:
+        updated_vehicle = vehicle_repository.update(id=id, plate_number=vehicle.plate_number, vehicle_type=vehicle.vehicle_type.value)
+    except UniqueViolation:
+        raise HTTPException(status_code=409, detail="Транспорт с таким номером уже существует",)
+    if updated_vehicle is None:
+        raise HTTPException(status_code=404, detail="Такого транспорта не существует")
+    return updated_vehicle
 @app.get("/vehicles", response_model=list[VehicleResponse])
 def get_all_vehicles():
     return find_all()
@@ -34,6 +40,9 @@ def get_all_vehicles():
 def create_vehicle(vehicle: VehicleCreate):
     return create(plate_number=vehicle.plate_number, vehicle_type=vehicle.vehicle_type)
 
+@app.delete("/vehicles/{id}")
+def delete_vehicle(id: int):
+    return vehicle_repository.delete(id=id)
 
 @app.post("/spots", response_model=ParkingSpot.ParkingResponse, status_code=201)
 def create_parking(parking_create: ParkingSpot.ParkingCreate):
@@ -45,7 +54,17 @@ def get_all_spots():
     return parking_repository.find_all()
 
 
-@app.get("/spot/{id}", response_model=ParkingSpot.ParkingResponse)
+@app.put("/spots/{id}")
+def update_spot(id: int, spot: ParkingSpot.ParkingCreate):
+    try:
+        updated_spot = parking_repository.update(id=id, spot_number=spot.spot_number, spot_type=spot.spot_type.value)
+    except UniqueViolation:
+        raise HTTPException(status_code=409, detail="Место с таким номером уже существует",)
+    if updated_spot is None:
+        raise HTTPException(status_code=404, detail="Такого места не существует")
+    return updated_spot
+
+@app.get("/spots/{id}", response_model=ParkingSpot.ParkingResponse)
 def get_spot(id: int):
     spot = parking_repository.find_one(id)
     print(spot)
@@ -54,3 +73,7 @@ def get_spot(id: int):
                             detail="Нету такого места парковки",)
 
     return spot
+
+@app.delete("/spots/{id}")
+def delete_spot(id: int):
+    return parking_repository.delete(id=id)
