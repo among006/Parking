@@ -1,16 +1,14 @@
-from db.check_db import result
+
 from db.database import get_connection
 
 def find_one(id:int):
     with get_connection() as db:
         result = db.execute("select *  from vehicles where id = %s", (id,))
-        db.close()
         return result.fetchone()
 
 def find_all():
     with get_connection() as db:
         result = db.execute("select *  from vehicles")
-        db.close()
         return result.fetchall()
 
 def create(plate_number: str, vehicle_type: str):
@@ -23,8 +21,6 @@ def create(plate_number: str, vehicle_type: str):
             """,
             (plate_number, vehicle_type),
         )
-        db.commit()
-        db.close()
         return result.fetchone()
 
 
@@ -32,7 +28,7 @@ def update(id: int, plate_number: str, vehicle_type: str):
     with get_connection() as db:
         result = db.execute(
             """
-            update parking_spot
+            update vehicles
             set plate_number = %s,
                 vehicle_type = %s
             where id = %s
@@ -52,6 +48,4 @@ def delete(id: str):
             """,
             (id,)
         )
-        db.commit()
-        db.close()
         return result.fetchone()

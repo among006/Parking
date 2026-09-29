@@ -11,14 +11,11 @@ def create_parking(spot_number: str,spot_type: str):
             """,
             (spot_number, spot_type),
         )
-        db.commit()
-        db.close()
         return result.fetchone()
 
 def find_all():
     with get_connection() as db:
         result = db.execute("select *  from parking_spot")
-        db.close()
         return result.fetchall()
 
 def update(id: int, spot_number: str, spot_type: str):
@@ -38,7 +35,6 @@ def update(id: int, spot_number: str, spot_type: str):
 def find_one(id:int):
     with get_connection() as db:
         result = db.execute("select *  from parking_spot where id = %s",(id,))
-        db.close()
         return result.fetchone()
 
 
@@ -52,6 +48,4 @@ def delete(id: str):
             """,
             (id,)
         )
-        db.commit()
-        db.close()
         return result.fetchone()
